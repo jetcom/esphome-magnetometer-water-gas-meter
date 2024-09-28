@@ -180,8 +180,8 @@ select:
 
 button:
   - platform: template
-    id: $(prefix_id)reset_button
-    name: $(prefix_id)Reset Total
+    id: ${prefix_id}reset_button
+    name: ${prefix_id}Reset Total
     entity_catagory: config
     on_press:
       - lambda: |-
