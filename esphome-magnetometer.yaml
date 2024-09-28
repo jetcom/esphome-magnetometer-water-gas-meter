@@ -185,6 +185,7 @@ button:
     entity_catagory: config
     on_press:
       - lambda: |-
+          ESP_LOGI("reset", "Resetting the total");
           id(${prefix_id}half_rotations_total) = 0;
   - platform: template
     id: ${prefix_id}calibrate_button
