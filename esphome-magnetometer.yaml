@@ -182,7 +182,6 @@ button:
   - platform: template
     id: ${prefix_id}reset_button
     name: ${prefix_id}Reset Total
-    entity_catagory: config
     on_press:
       - lambda: |-
           ESP_LOGI("reset", "Resetting the total");
