@@ -71,24 +71,16 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
-  - id: ${prefix_id}calibrating_axis_x_min
-    type: float
+  - id: ${prefix_id}cal_x_queue
+    type: std::deque<float>
     restore_value: no
-  - id: ${prefix_id}calibrating_axis_x_max
-    type: float
+  - id: ${prefix_id}cal_y_queue
+    type: std::deque<float>
     restore_value: no
-  - id: ${prefix_id}calibrating_axis_y_min
-    type: float
+  - id: ${prefix_id}cal_z_queue
+    type: std::deque<float>
     restore_value: no
-  - id: ${prefix_id}calibrating_axis_y_max
-    type: float
-    restore_value: no
-  - id: ${prefix_id}calibrating_axis_z_min
-    type: float
-    restore_value: no
-  - id: ${prefix_id}calibrating_axis_z_max
-    type: float
-    restore_value: no
+
 
 number:
   - platform: template
@@ -193,36 +185,64 @@ button:
     on_press:
       - lambda: |-
           ESP_LOGI("calibration", "Starting calibration. Make sure ${device_class} is running");
-          id(${prefix_id}calibrating_axis_x_min) = std::numeric_limits<float>::max();
-          id(${prefix_id}calibrating_axis_x_max) = std::numeric_limits<float>::lowest();
-          id(${prefix_id}calibrating_axis_y_min) = std::numeric_limits<float>::max();
-          id(${prefix_id}calibrating_axis_y_max) = std::numeric_limits<float>::lowest();
-          id(${prefix_id}calibrating_axis_z_min) = std::numeric_limits<float>::max();
-          id(${prefix_id}calibrating_axis_z_max) = std::numeric_limits<float>::lowest();
+          id(${prefix_id}cal_x_queue).clear();
+          id(${prefix_id}cal_y_queue).clear();
+          id(${prefix_id}cal_z_queue).clear();
           id(${prefix_id}calibrating) = true;
       - delay: !lambda return id(${prefix_id}calibration_seconds).state * 1000;
       - lambda: |-
           id(${prefix_id}calibrating) = false;
-          float x_range = id(${prefix_id}calibrating_axis_x_max) - id(${prefix_id}calibrating_axis_x_min);
-          float y_range = id(${prefix_id}calibrating_axis_y_max) - id(${prefix_id}calibrating_axis_y_min);
-          float z_range = id(${prefix_id}calibrating_axis_z_max) - id(${prefix_id}calibrating_axis_z_min);
-          if (x_range < 0) {
+          float x_range_min = *std::min_element(id(${prefix_id}cal_x_queue).begin(), id(${prefix_id}cal_x_queue).end());
+          float x_range_max = *std::max_element(id(${prefix_id}cal_x_queue).begin(), id(${prefix_id}cal_x_queue).end());
+          float x_sum = 0;
+          for(std::deque<float>::iterator it = id(${prefix_id}cal_x_queue).begin(); it != id(${prefix_id}cal_x_queue).end(); ++it) {
+            x_sum += *it;
+          }
+          float x_variance = 0;
+          for(std::deque<float>::iterator it = id(${prefix_id}cal_x_queue).begin(); it != id(${prefix_id}cal_x_queue).end(); ++it) {
+            x_variance += pow(*it - x_sum / id(${prefix_id}cal_x_queue).size(), 2);
+          }
+          float x_stddev = sqrt(x_variance / id(${prefix_id}cal_x_queue).size());
+          
+          float y_range_min = *std::min_element(id(${prefix_id}cal_y_queue).begin(), id(${prefix_id}cal_y_queue).end());
+          float y_range_max = *std::max_element(id(${prefix_id}cal_y_queue).begin(), id(${prefix_id}cal_y_queue).end());
+          float y_sum = 0; 
+          for(std::deque<float>::iterator it = id(${prefix_id}cal_y_queue).begin(); it != id(${prefix_id}cal_y_queue).end(); ++it) {
+            y_sum += *it;
+          }
+          float y_variance = 0;
+          for (std::deque<float>::iterator it = id(${prefix_id}cal_y_queue).begin(); it != id(${prefix_id}cal_y_queue).end(); ++it) {
+            y_variance += pow(*it - y_sum / id(${prefix_id}cal_y_queue).size(), 2);
+          }
+          float y_stddev = sqrt(y_variance / id(${prefix_id}cal_y_queue).size());
+          
+          float z_range_min = *std::min_element(id(${prefix_id}cal_z_queue).begin(), id(${prefix_id}cal_z_queue).end());
+          float z_range_max = *std::max_element(id(${prefix_id}cal_z_queue).begin(), id(${prefix_id}cal_z_queue).end());
+          for(std::deque<float>::iterator it = id(${prefix_id}cal_z_queue).begin(); it != id(${prefix_id}cal_z_queue).end(); ++it) {
+            z_sum += *it;
+          }
+          float z_variance = 0;
+          for (std::deque<float>::iterator it = id(${prefix_id}cal_z_queue).begin(); it != id(${prefix_id}cal_z_queue).end(); ++it) {
+            z_variance += pow(*it - z_sum / id(${prefix_id}cal_z_queue).size(), 2);
+          }
+          float z_stddev = sqrt(z_variance / id(${prefix_id}cal_z_queue).size());
+          
+          ESP_LOGI("${prefix_id}calibration", "x stddev: %.2f, y stddev: %.2f, z stddev: %.2f", x_stddev, y_stddev, z_stddev);
+          
+          if (id({prefix_id}cal_x_queue).empty()) {
             ESP_LOGW("${prefix_id}calibration", "Didn't get any values for x");
           } else {
-            ESP_LOGI("${prefix_id}calibration", "x ranged from %.2f to %.2f",
-                     id(${prefix_id}calibrating_axis_x_min), id(${prefix_id}calibrating_axis_x_max));
+            ESP_LOGI("${prefix_id}calibration", "x ranged from %.2f to %.2f", x_range_min, x_range_max);
           }
-          if (y_range < 0) {
+          if (id(${prefix_id}cal_y_queue).empty()) {
             ESP_LOGW("${prefix_id}calibration", "Didn't get any values for y");
           } else {
-            ESP_LOGI("${prefix_id}calibration", "y ranged from %.2f to %.2f",
-                     id(${prefix_id}calibrating_axis_y_min), id(${prefix_id}calibrating_axis_y_max));
+            ESP_LOGI("${prefix_id}calibration", "y ranged from %.2f to %.2f", y_range_min, y_range_max);
           }
-          if (z_range < 0) {
+          if (if(${prefix_id}cal_z_queue).empty()) {
             ESP_LOGW("${prefix_id}calibration", "Didn't get any values for z");
           } else {
-            ESP_LOGI("${prefix_id}calibration", "z ranged from %.2f to %.2f",
-                     id(${prefix_id}calibrating_axis_z_min), id(${prefix_id}calibrating_axis_z_max));
+            ESP_LOGI("${prefix_id}calibration", "z ranged from %.2f to %.2f", z_range_min, z_range_max);
           }
           std::string axis_with_largest_range;
           float min, max;
@@ -293,8 +313,7 @@ sensor:
           - lambda:
               if (id(${prefix_id}axis).state == "x") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}calibrating_axis_x_min) = min(id(${prefix_id}calibrating_axis_x_min), x);
-                id(${prefix_id}calibrating_axis_x_max) = max(id(${prefix_id}calibrating_axis_x_max), x);
+                id(${prefix_id}cal_x_queue).push(x);
               }
       filters:
         - delta: 3
@@ -308,8 +327,7 @@ sensor:
           - lambda: |-
               if (id(${prefix_id}axis).state == "y") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}calibrating_axis_y_min) = min(id(${prefix_id}calibrating_axis_y_min), x);
-                id(${prefix_id}calibrating_axis_y_max) = max(id(${prefix_id}calibrating_axis_y_max), x);
+                id(${prefix_id}cal_y_queue).push(x);
               }
       filters:
         - delta: 3
@@ -323,8 +341,7 @@ sensor:
           - lambda:
               if (id(${prefix_id}axis).state == "z") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}calibrating_axis_z_min) = min(id(${prefix_id}calibrating_axis_z_min), x);
-                id(${prefix_id}calibrating_axis_z_max) = max(id(${prefix_id}calibrating_axis_z_max), x);
+                id(${prefix_id}cal_y_queue).push(x);
               }
       filters:
         - delta: 3
