@@ -175,9 +175,9 @@ button:
     id: $(prefix_id)reset_button
     name: $(prefix_id)Reset Total
     entity_catagory: config
-    on_press:
-      - lambda: |-
-          id(${prefix_id}half_rotations_total) = 0;
+   # on_press:
+    #  - lambda: |-
+     #     id(${prefix_id}half_rotations_total) = 0;
   - platform: template
     id: ${prefix_id}calibrate_button
     name: ${prefix_name}Calibrate axis
