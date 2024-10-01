@@ -250,29 +250,35 @@ button:
             ESP_LOGI("${prefix_id}calibration", "z ranged from %.2f to %.2f", z_range_min, z_range_max);
           }
           std::string axis_with_largest_range;
-          /*
-          float min, max;
-          if (x_range > 20 && x_range > y_range && x_range > z_range) {
+          
+          float min, max, mean, stddev;
+          if (x_stddev > 20 && x_stddev > y_stddev && x_stddev > z_stddev) {
             axis_with_largest_range = "x";
-            min = id(${prefix_id}calibrating_axis_x_min);
-            max = id(${prefix_id}calibrating_axis_x_max);
-          } else if (y_range > 20 && y_range > x_range && y_range > z_range) {
+            min = x_range_min;
+            max = x_range_max;
+            mean = x_mean;
+            stddev = x_stddev;
+          } else if (y_stddev > 20 && y_stddev > x_stddev && y_stddev > z_stddev) {
             axis_with_largest_range = "y";
-            min = id(${prefix_id}calibrating_axis_y_min);
-            max = id(${prefix_id}calibrating_axis_y_max);
-          } else if (z_range > 20 && z_range > x_range && z_range > y_range) {
+            min = y_range_min;
+            max = y_range_max;
+            mean = y_mean;
+            stddev = y_stddev;
+          } else if (z_stddev > 20 && z_stddev > x_stddev && z_stddev > y_stddev) {
             axis_with_largest_range = "z";
-            min = id(${prefix_id}calibrating_axis_z_min);
-            max = id(${prefix_id}calibrating_axis_z_max);
+            min = z_range_min;
+            max = z_range_max;
+            mean = z_mean;
+            stddev = z_stddev;
           } else {
             ESP_LOGE("${prefix_id}calibration", "Calibration failed. No axis had a range of at least 20");
             return;
           }
-          float lower_threshold = min + (max - min) / 2 - 5;
-          float upper_threshold = min + (max - min) / 2 + 5;
+          float lower_threshold = mean - stddev / 2;
+          float upper_threshold = mean + stddev / 2;
           ESP_LOGI("${prefix_id}calibration", "Selected %s axis with lower threshold: %.2f and upper threshold: %.2f",
                    axis_with_largest_range.c_str(), lower_threshold, upper_threshold);
-          id(${prefix_id}axis).make_call().set_option(axis_with_largest_range).perform();
+          /*id(${prefix_id}axis).make_call().set_option(axis_with_largest_range).perform();
           id(${prefix_id}threshold_lower).make_call().set_value(roundf(lower_threshold * 10) / 10).perform();
           id(${prefix_id}threshold_upper).make_call().set_value(roundf(upper_threshold * 10) / 10).perform();
           */
