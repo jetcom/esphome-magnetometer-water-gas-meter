@@ -218,6 +218,7 @@ button:
           
           float z_range_min = *std::min_element(id(${prefix_id}cal_z_queue).begin(), id(${prefix_id}cal_z_queue).end());
           float z_range_max = *std::max_element(id(${prefix_id}cal_z_queue).begin(), id(${prefix_id}cal_z_queue).end());
+          float z_sum = 0;
           for(std::deque<float>::iterator it = id(${prefix_id}cal_z_queue).begin(); it != id(${prefix_id}cal_z_queue).end(); ++it) {
             z_sum += *it;
           }
@@ -239,7 +240,7 @@ button:
           } else {
             ESP_LOGI("${prefix_id}calibration", "y ranged from %.2f to %.2f", y_range_min, y_range_max);
           }
-          if (if(${prefix_id}cal_z_queue).empty()) {
+          if (id(${prefix_id}cal_z_queue).empty()) {
             ESP_LOGW("${prefix_id}calibration", "Didn't get any values for z");
           } else {
             ESP_LOGI("${prefix_id}calibration", "z ranged from %.2f to %.2f", z_range_min, z_range_max);
@@ -315,7 +316,7 @@ sensor:
           - lambda:
               if (id(${prefix_id}axis).state == "x") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}cal_x_queue).push(x);
+                id(${prefix_id}cal_x_queue).push_back(x);
               }
       filters:
         - delta: 3
@@ -329,7 +330,7 @@ sensor:
           - lambda: |-
               if (id(${prefix_id}axis).state == "y") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}cal_y_queue).push(x);
+                id(${prefix_id}cal_y_queue).push_back(x);
               }
       filters:
         - delta: 3
@@ -343,7 +344,7 @@ sensor:
           - lambda:
               if (id(${prefix_id}axis).state == "z") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}cal_y_queue).push(x);
+                id(${prefix_id}cal_y_queue).push_back(x);
               }
       filters:
         - delta: 3
