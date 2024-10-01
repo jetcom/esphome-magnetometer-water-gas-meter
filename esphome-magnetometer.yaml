@@ -271,7 +271,7 @@ button:
             mean = z_mean;
             stddev = z_stddev;
           } else {
-            ESP_LOGE("${prefix_id}calibration", "Calibration failed. No axis had a range of at least 20");
+            ESP_LOGE("${prefix_id}calibration", "Calibration failed. No axis had a std_dev of at least 20");
             return;
           }
           float lower_threshold = mean - stddev / 2;
@@ -354,7 +354,7 @@ sensor:
           - lambda:
               if (id(${prefix_id}axis).state == "z") id(${prefix_id}axis_value).publish_state(x);
               if (id(${prefix_id}calibrating)) {
-                id(${prefix_id}cal_y_queue).push_back(x);
+                id(${prefix_id}cal_z_queue).push_back(x);
               }
       filters:
         - delta: 3
