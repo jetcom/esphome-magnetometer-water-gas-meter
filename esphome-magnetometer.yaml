@@ -230,7 +230,7 @@ button:
           
           ESP_LOGI("${prefix_id}calibration", "x stddev: %.2f, y stddev: %.2f, z stddev: %.2f", x_stddev, y_stddev, z_stddev);
           
-          if (id({prefix_id}cal_x_queue).empty()) {
+          if (id(${prefix_id}cal_x_queue).empty()) {
             ESP_LOGW("${prefix_id}calibration", "Didn't get any values for x");
           } else {
             ESP_LOGI("${prefix_id}calibration", "x ranged from %.2f to %.2f", x_range_min, x_range_max);
