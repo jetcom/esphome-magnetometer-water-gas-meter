@@ -198,9 +198,10 @@ button:
           for(std::deque<float>::iterator it = id(${prefix_id}cal_x_queue).begin(); it != id(${prefix_id}cal_x_queue).end(); ++it) {
             x_sum += *it;
           }
+          float x_mean = x_sum / id(${prefix_id}cal_x_queue).size();
           float x_variance = 0;
           for(std::deque<float>::iterator it = id(${prefix_id}cal_x_queue).begin(); it != id(${prefix_id}cal_x_queue).end(); ++it) {
-            x_variance += pow(*it - x_sum / id(${prefix_id}cal_x_queue).size(), 2);
+            x_variance += pow(*it - x_mean, 2);
           }
           float x_stddev = sqrt(x_variance / id(${prefix_id}cal_x_queue).size());
           
@@ -210,9 +211,10 @@ button:
           for(std::deque<float>::iterator it = id(${prefix_id}cal_y_queue).begin(); it != id(${prefix_id}cal_y_queue).end(); ++it) {
             y_sum += *it;
           }
+          float y_mean = y_sum / id(${prefix_id}cal_y_queue).size();
           float y_variance = 0;
           for (std::deque<float>::iterator it = id(${prefix_id}cal_y_queue).begin(); it != id(${prefix_id}cal_y_queue).end(); ++it) {
-            y_variance += pow(*it - y_sum / id(${prefix_id}cal_y_queue).size(), 2);
+            y_variance += pow(*it - y_mean, 2);
           }
           float y_stddev = sqrt(y_variance / id(${prefix_id}cal_y_queue).size());
           
@@ -222,13 +224,15 @@ button:
           for(std::deque<float>::iterator it = id(${prefix_id}cal_z_queue).begin(); it != id(${prefix_id}cal_z_queue).end(); ++it) {
             z_sum += *it;
           }
+          float z_mean = z_sum / id(${prefix_id}cal_z_queue).size();
           float z_variance = 0;
           for (std::deque<float>::iterator it = id(${prefix_id}cal_z_queue).begin(); it != id(${prefix_id}cal_z_queue).end(); ++it) {
-            z_variance += pow(*it - z_sum / id(${prefix_id}cal_z_queue).size(), 2);
+            z_variance += pow(*it - z_mean, 2);
           }
           float z_stddev = sqrt(z_variance / id(${prefix_id}cal_z_queue).size());
           
           ESP_LOGI("${prefix_id}calibration", "x stddev: %.2f, y stddev: %.2f, z stddev: %.2f", x_stddev, y_stddev, z_stddev);
+          ESP_LOGI("${prefix_id}calibration", "x mean: %.2f, y mean: %.2f, z mean: %.2f", x_mean, y_mean, z_mean);
           
           if (id(${prefix_id}cal_x_queue).empty()) {
             ESP_LOGW("${prefix_id}calibration", "Didn't get any values for x");
